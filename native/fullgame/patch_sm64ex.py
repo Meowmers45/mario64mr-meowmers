@@ -284,6 +284,25 @@ def prepare(root, rom, sixty=True, external_data=True):
     interaction = replace_once(interaction, 'void mario_process_interactions(struct MarioState *m) {',
                                'void mario_process_interactions(struct MarioState *m) {\n    if (unity_mario_outside()) { m->marioObj->oInteractStatus=0; return; }')
     (root / "src/game/interaction.c").write_text(interaction)
+    # Seen as a diorama the whole level is in view: objects past their drawing distance from Mario are still drawn
+    # (unity_draw_far), though the game goes on treating them as far away (their updates, unchanged)
+    behavior = original("src/engine/behavior_script.c")
+    behavior = 'extern int unity_draw_far(void);\n' + behavior
+    behavior = replace_once(behavior, """                // Out of render distance, hide the object.
+                gCurrentObject->header.gfx.node.flags &= ~GRAPH_RENDER_ACTIVE;
+                gCurrentObject->activeFlags |= ACTIVE_FLAG_FAR_AWAY;""", """                // Out of render distance, hide the object.
+                if (!unity_draw_far()) {
+                    gCurrentObject->header.gfx.node.flags &= ~GRAPH_RENDER_ACTIVE;
+                } else if (gCurrentObject->oHeldState == HELD_FREE) {
+                    gCurrentObject->header.gfx.node.flags |= GRAPH_RENDER_ACTIVE;
+                }
+                gCurrentObject->activeFlags |= ACTIVE_FLAG_FAR_AWAY;""")
+    (root / "src/engine/behavior_script.c").write_text(behavior)
+    obj_behaviors = original("src/game/obj_behaviors.c")
+    obj_behaviors = 'extern int unity_draw_far(void);\n' + obj_behaviors
+    obj_behaviors = replace_once(obj_behaviors, '    if (is_point_within_radius_of_mario(objX, objY, objZ, dist) == TRUE) {\n#endif\n        obj->header.gfx.node.flags &= ~GRAPH_RENDER_INVISIBLE;',
+                                 '    if (unity_draw_far() || is_point_within_radius_of_mario(objX, objY, objZ, dist) == TRUE) {\n#endif\n        obj->header.gfx.node.flags &= ~GRAPH_RENDER_INVISIBLE;')
+    (root / "src/game/obj_behaviors.c").write_text(obj_behaviors)
     # Levels split into rooms (the castle) draw the one under Mario: carried, or out in the room (whose
     # coordinates mean nothing in the level), he keeps the one he was taken from
     helpers = original("src/game/object_helpers.c")
