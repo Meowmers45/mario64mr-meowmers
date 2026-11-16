@@ -152,6 +152,11 @@ def prepare(root, rom, sixty=True, external_data=True):
     level = 'extern void unity_set_stage(int);\n' + level
     start = level.index('{', level.index('s32 lvl_init_from_save_file('))
     level = level[:start+1] + '\n    unity_set_stage(3);' + level[start+1:]
+    # Any warp (a death, a pipe, a door to the same area) brings Mario back into the game: his room coordinates
+    # mean nothing at the warp's spawn point (unity_mr.c)
+    level = 'extern void unity_mario_warped(void);\n' + level
+    level = replace_once(level, 'void init_mario_after_warp(void) {\n',
+                         'void init_mario_after_warp(void) {\n    unity_mario_warped();\n')
     area = original("src/game/area.c")
     if sixty:
         # (for MarioFace) The HUD (its icons, then its numbers, printed as text labels) is tagged 3, so the host can
