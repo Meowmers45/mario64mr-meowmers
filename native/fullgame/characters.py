@@ -123,7 +123,7 @@ def find(paths, folder, work):
         if names.count(name) > 1:
             fail(f"Two character packs are called \"{name}\": rename one (its folder, or a name.txt in it)")
     for pack in packs:
-        parts = (["model"] if pack.model else []) + ([f"{len(pack.voices)} voice clips"] if pack.voices else [])
+        parts = (["model"] if pack.model else []) + ([f"{len(pack.voices)} voice clip" + ("s" if len(pack.voices) != 1 else "")] if pack.voices else [])
         print(f"Character: {pack.name} ({', '.join(parts)}) from {pack.source}", flush=True)
     return packs
 

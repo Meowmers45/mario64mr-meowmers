@@ -28,3 +28,8 @@ User choices: players supply their own files; choice remembered on the device; m
   hex .inc.c without png, string-literal paths, raw hex arrays sized from the display lists, CI4/CI8 with palette)
   becomes a name + PNG in characters.zip; pngs found anywhere in the pack. Installer checks characters.zip reached the headset.
 - Tested (Python only): tests/test_character_textures.py, 31 passing. Game build/headset still unverified.
+
+## 2026-06 example pack
+- characters/_example/Halo Mario: original example (halo with own texture over Mario's own body, own jump clip 00),
+  README per part. Folders starting with _ are skipped by the folder scan; use --character or copy it out.
+- Tests: tests/test_example_pack.py + test_character_textures.py, 43 passing (Python only).

@@ -1,0 +1,26 @@
+{
+  "summary": "Tested the example character pack (characters/_example/Halo Mario) with Python only: no game build, no ROM, nothing downloaded. Added /app/tests/test_example_pack.py with 12 tests. 43 tests run (31 old + 12 new): 42 pass, 1 fails. The failure is that find() prints '1 voice clips' where it should say '1 voice clip'. Everything else asked for works: find() leaves _example out of the characters folder; --character finds the pack with the right name, slug, model folder and clip; match_clip, read_wav and the AIFF round trip work; write_sources gives mrc1_ names and keeps the game's mario_geo_load_body and mario_geo_render_body; the texture bytes are right; the zip holds a valid 32x32 RGBA PNG; the C checks pass; the READMEs are there; git tracks the files and does not ignore them; install --help runs.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "native/fullgame/characters.py find() line 126", "issue": "Always prints the plural: 'Character: Halo Mario (model, 1 voice clips) from ...'. The request says it should be singular ('1 voice clip')."}
+    ]
+  },
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": ["/app/tests/test_example_pack.py", "/app/tests/test_character_textures.py", "/app/test_reports/pytest/pytest_results_iter2.xml"],
+  "action_items": [
+    "characters.py line 126: use f\"{len(pack.voices)} voice clip{'s' if len(pack.voices) != 1 else ''}\" so one clip prints '1 voice clip'."
+  ],
+  "critical_code_review_comments": [
+    "find(): the only defect is the plural above. Skipping names that start with '.' or '_' covers both folders and .zip files, and README.md is left out by the is_dir/.zip filter.",
+    "Example C: braces and parentheses are balanced. There are 16 vertices, matching the declared 16 and gsSPVertex(...,16,0). All 16 triangle indices are below 16. There are 3 GEO_OPEN_NODE and 3 GEO_CLOSE_NODE, properly nested, and the layout ends with GEO_END().",
+    "The game's mario_geo_load_body and mario_geo_render_body are not renamed: DEFINITION only picks up names the pack itself defines. The preprocessor's '#define mario_geo' does not touch tokens that only start with 'mario_geo'.",
+    "Not checked: whether the geo actually compiles and draws in sm64ex (no build was allowed). The layout depends on the game's mario_geo_load_body, mario_geo_render_body, geo_switch_mario_stand_run and geo_mirror_* being visible where unity_character_models.c includes the model."
+  ],
+  "updated_files": ["/app/tests/test_example_pack.py"],
+  "success_rate": {"backend": "97.7% (42/43)", "frontend": "N/A"},
+  "seed_data_creation": "None. Tests write only to pytest tmp_path.",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Run: python3 -m pytest /app/tests -q -p no:cacheprovider. test_find_explicit_example fails until the singular 'voice clip' fix is in. git ls-files shows all 7 example files tracked, and characters/<user pack> is still ignored."
+}
