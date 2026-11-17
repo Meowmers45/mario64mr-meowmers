@@ -3,6 +3,8 @@
  * bringing Mario back from the room. Opened as the PC port's is: R in the pause menu. */
 
 #include "pc/unity_options.h"
+#define UNITY_CHARACTER_MENU
+#include "pc/unity_characters.inc.h"
 
 static const u8 mrMenuStr[][32] = {
     { TEXT_MR_GRAPHICS },
@@ -18,6 +20,7 @@ static const u8 mrMenuStr[][32] = {
     { TEXT_MR_DEFAULTS },
     { TEXT_MR_HANDS },
     { TEXT_MR_DIORAMA },
+    { TEXT_MR_CHARACTER },
 };
 
 static const u8 mrRateStr[][8] = { { TEXT_MR_72HZ }, { TEXT_MR_80HZ }, { TEXT_MR_90HZ }, { TEXT_MR_120HZ } };
@@ -90,6 +93,9 @@ static struct Option optsMain[] = {
     DEF_OPT_SUBMENU( mrMenuStr[0], &menuGraphics ),
     DEF_OPT_SUBMENU( mrMenuStr[1], &menuAudio ),
     DEF_OPT_CHOICE ( mrMenuStr[2], &gUnityOptions[UNITY_OPT_HUD], mrToggleChoices ),
+#if UNITY_CHARACTER_COUNT > 1
+    DEF_OPT_CHOICE ( mrMenuStr[13], &gUnityCharacter, mrCharacterChoices ),
+#endif
     DEF_OPT_BUTTON ( mrMenuStr[3], mr_bring_back ),
 };
 

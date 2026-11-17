@@ -24,4 +24,9 @@ enum UnityOption {
 extern unsigned int gUnityOptions[UNITY_OPT_COUNT];
 /* Each frame, before the game's: the volumes and the HUD into the PC port's settings */
 void unity_apply_options(void);
+/* Your own characters (unity_characters.c): the one picked (0 the original Mario), applied each tick */
+extern unsigned int gUnityCharacter;
+void unity_characters_update(void);
+struct Object;
+void unity_character_model(struct Object *o);
 #endif

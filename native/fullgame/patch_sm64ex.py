@@ -11,6 +11,7 @@ import subprocess
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
+import characters  # noqa: E402  (next to this file)
 REVISION = "d7ca2c04364a6dd0dac58b47151e04e26887e6f0"
 
 
@@ -71,7 +72,7 @@ def replace_once(text, old, new):
 SIXTY_PATCH = "enhancements/60fps_ex.patch"
 
 
-def prepare(root, rom, sixty=True, external_data=True):
+def prepare(root, rom, sixty=True, external_data=True, packs=()):
     if subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=root, text=True).strip() != REVISION:
         raise ValueError("Unexpected runtime revision")
     # The PC port's own 60 fps interpolation: every game frame is drawn twice, first between the previous
@@ -479,10 +480,14 @@ Gfx *geo_offset_klepto_held_object(""")
     options = replace_once(options, "        controller_reconfigure(); // rebind using new config values\n        configfile_save(configfile_name());\n", "")
     (root / "src/game/options_menu.c").write_text(options)
     strings = original("include/text_options_strings.h.in")
-    strings = replace_once(strings, "#endif // TEXT_OPTIONS_STRINGS_H", MR_STRINGS + "\n#endif // TEXT_OPTIONS_STRINGS_H")
+    strings = replace_once(strings, "#endif // TEXT_OPTIONS_STRINGS_H",
+                           MR_STRINGS + characters.strings(packs) + "\n#endif // TEXT_OPTIONS_STRINGS_H")
     (root / "include/text_options_strings.h.in").write_text(strings)
-    for name in ("unity_bridge.h", "unity_bridge.c", "unity_mr.c", "unity_room.inc.h", "unity_hands.inc.h", "unity_options.h", "unity_options.inc.h"):
+    for name in ("unity_bridge.h", "unity_bridge.c", "unity_mr.c", "unity_room.inc.h", "unity_hands.inc.h", "unity_options.h", "unity_options.inc.h",
+                 "unity_characters.c", "unity_character_models.c"):
         shutil.copy2(HERE / name, root / "src/pc" / name)
+    # Your own characters (characters.py): their models, and what each pack has, for the two files above
+    characters.write_sources(root, packs)
     (root / "baserom.us.z64").write_bytes(rom)
     # Sequence zero is authored as data-only assembly upstream. Read its exact
     # original bytes from the supplied ROM instead of requiring a cross assembler.

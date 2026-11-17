@@ -6,3 +6,5 @@ Mario64MRData-work/
 *.apk
 __pycache__/
 .DS_Store
+characters/*
+!characters/README.md

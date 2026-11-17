@@ -83,6 +83,7 @@ void unity_apply_options(void) {
     configSfxVolume = gUnityOptions[UNITY_OPT_SFX_VOLUME];
     configEnvVolume = gUnityOptions[UNITY_OPT_ENV_VOLUME];
     configHUD = gUnityOptions[UNITY_OPT_HUD] != 0;
+    unity_characters_update();
 }
 /* 0: original game, 1: held in game, 2: held in room, 3: released in room. */
 static int carry_mode;
@@ -174,6 +175,7 @@ EXPORT int sm64unity_carry(int mode, float x,float y,float z,float vx,float vy,f
 }
 
 s32 unity_execute_mario_action(struct Object *o) {
+    unity_character_model(o);
     if (carry_mode && (gCurrLevelNum!=carry_level || gCurrAreaIndex!=carry_area)) {
         carry_mode=0;
         unity_skip_interpolation();

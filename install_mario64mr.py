@@ -8,6 +8,7 @@ computer, from your ROM and from the community's public sources, fetched at pinn
   the game data    extracted from your ROM with the sm64ex PC port's own tools
                      Mario64MRData/baserom.us.z64      the ROM, for the title screen's music and sounds
                      Mario64MRData/sm64/res/base.zip   sm64ex's resource pack: the textures and the sound banks
+                     Mario64MRData/sm64/res/characters.zip   your own characters' textures and voices, if any
   the game code    compiled for the headset with Android's NDK
                      Mario64MRData/native/libsm64game.so   the whole game: sm64ex with Mario 64 MR's changes
                                                            (native/fullgame)
@@ -20,6 +21,9 @@ usage:
     python3 install_mario64mr.py "Super Mario 64 (USA).z64" --push     # ...and adb pushes it to the headset
     python3 install_mario64mr.py "Super Mario 64 (USA).z64" --push --label my-label.png
                                                                        # ...with your own cartridge label
+    python3 install_mario64mr.py "Super Mario 64 (USA).z64" --push --character Luigi --character Wario.zip
+                                                                       # ...with your own characters (or put
+                                                                       # them in the characters folder)
     python3 install_mario64mr.py "Super Mario 64 (USA).z64" --check    # only checks the ROM
     python3 install_mario64mr.py "Super Mario 64 (USA).z64" --push --frame --apk Mario64MR-SteamFrame.apk
                                                                        # ...to a Steam Frame, over Wi-Fi
@@ -49,6 +53,7 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE / "native/fullgame"))
 import patch_sm64ex  # noqa: E402
+import characters  # noqa: E402
 
 SM64EX = "https://github.com/sm64pc/sm64ex.git"
 SM64EX_REVISION = patch_sm64ex.REVISION
@@ -489,10 +494,10 @@ def make_compilers(ndk, work):
     return tuple(names)
 
 
-def build_game(work, rom, ndk, out):
+def build_game(work, rom, ndk, out, packs=()):
     """libsm64game.so: sm64ex with the PC port's 60 fps interpolation, the Unity bridge and Mario 64 MR's changes,
-    its data left out (it reads base.zip at runtime)."""
-    patch_sm64ex.prepare(work, rom, sixty=True, external_data=True)
+    and your own characters' models, its data left out (it reads base.zip, and characters.zip, at runtime)."""
+    patch_sm64ex.prepare(work, rom, sixty=True, external_data=True, packs=packs)
     # The attract demos' inputs are game data compiled in even with external data: blank them (never played, the
     # demo timer is off)
     for demo in (work / "assets/demos").glob("*.bin"):
@@ -688,6 +693,10 @@ def push(out, wait=False, apk=None, frame=None, lepton_ssh=None):
     run(["adb", "shell", "mkdir", "-p", DEVICE_FOLDER + "/sm64/res", DEVICE_FOLDER + "/native"])
     run(["adb", "push", native(out / "baserom.us.z64"), DEVICE_FOLDER + "/"])
     run(["adb", "push", native(out / "sm64/res/base.zip"), DEVICE_FOLDER + "/sm64/res/"])
+    # (your own characters: the ones made this time, or none)
+    run(["adb", "shell", "rm", "-f", f"{DEVICE_FOLDER}/sm64/res/{characters.ZIP_NAME}"])
+    if (out / "sm64/res" / characters.ZIP_NAME).is_file():
+        run(["adb", "push", native(out / "sm64/res" / characters.ZIP_NAME), DEVICE_FOLDER + "/sm64/res/"])
     run(["adb", "push"] + [native(out / "native" / n) for n in LIBRARIES] + [DEVICE_FOLDER + "/native/"])
     labels = sorted(out.glob("label.*"))
     if labels:
@@ -709,6 +718,12 @@ def main():
     parser.add_argument("--ndk", type=Path, help="an Android NDK to use (else found, or downloaded)")
     parser.add_argument("--push", action="store_true", help="also adb push it to the headset")
     parser.add_argument("--label", type=Path, help="your own cartridge label: a square PNG or JPEG (see the README)")
+    parser.add_argument("--character", action="append", type=Path, metavar="PACK",
+                        help="your own character for Mario: a folder (or .zip) with a model, voice clips or both "
+                             "(see the README). Give it again for more")
+    parser.add_argument("--characters", type=Path, default=HERE / "characters", metavar="FOLDER",
+                        help="a folder of character packs, all of them made into the game (./characters, next to "
+                             "this tool)")
     parser.add_argument("--check", action="store_true", help="only check the ROM, and stop")
     parser.add_argument("--wait", action="store_true", help="with --push: if no headset is connected, wait for it")
     parser.add_argument("--apk", type=Path, help="with --push: also install the app (Mario64MR.apk) on the headset")
@@ -743,6 +758,8 @@ def main():
     (out / "native").mkdir(parents=True, exist_ok=True)
     if args.label:
         add_label(args.label, out)
+    # (checked before anything long: a pack with nothing usable in it is said now)
+    packs = characters.find(args.character, args.characters, work)
 
     print("== The game data, from your ROM", flush=True)
     fetch(SM64EX, SM64EX_REVISION, sm64ex, shallow=True)
@@ -750,10 +767,14 @@ def main():
     build_pack(sm64ex)
     (out / "baserom.us.z64").write_bytes(rom)
     pack(sm64ex, out)
+    if packs:
+        print("== Your characters' voices", flush=True)
+        characters.build_voices(sm64ex, PACK_BUILD, packs)
 
     print("== The game code, for the headset", flush=True)
     ndk = find_ndk(work, args.ndk)
-    build_game(sm64ex, rom, ndk, out / "native")
+    build_game(sm64ex, rom, ndk, out / "native", packs)
+    characters.write_zip(out, packs)
     decomp = work / "sm64-decomp"
     fetch(DECOMP, DECOMP_REVISION, decomp, shallow=True)
     build_goddard(decomp, sm64ex, ndk, work / "goddard", out / "native")

@@ -132,7 +132,9 @@ fi
 
 say "Making the game from your ROM (the first time about 10 minutes and a 700 MB download)"
 cd "$DIR/src"
-python3 "$TOOL" "$ROM" --out "$DIR/game" --work "$DIR/work" || fail "making the game failed (see above)"
+# Your own characters for Mario: the packs in Downloads/Mario64MR characters (see the README's Your own characters)
+CHARACTERS="${HOME}/Downloads/Mario64MR characters"
+python3 "$TOOL" "$ROM" --out "$DIR/game" --work "$DIR/work" --characters "$CHARACTERS" || fail "making the game failed (see above)"
 # The NDK download is only needed again for a new NDK version, and a ROM taken out of a zip isn't needed at all
 rm -f "$DIR/work/"android-ndk-*.zip
 rm -rf "$DIR/rom-from-zip"
@@ -144,6 +146,8 @@ FILES="$DIR/compat/external/Android/data/$PACKAGE/files"
 mkdir -p "$FILES/sm64/res" "$FILES/native"
 cp "$DIR/game/baserom.us.z64" "$FILES/"
 cp "$DIR/game/sm64/res/base.zip" "$FILES/sm64/res/"
+rm -f "$FILES/sm64/res/characters.zip"
+[ ! -f "$DIR/game/sm64/res/characters.zip" ] || cp "$DIR/game/sm64/res/characters.zip" "$FILES/sm64/res/"
 cp "$DIR/game/native/"*.so "$FILES/native/"
 
 say "Adding Mario 64 MR to your Steam library"

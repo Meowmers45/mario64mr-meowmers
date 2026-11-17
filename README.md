@@ -148,6 +148,7 @@ D=/sdcard/Android/data/com.lucasmartinic.mario64mr/files
 adb shell mkdir -p $D/sm64/res $D/native
 adb push Mario64MRData/baserom.us.z64 $D/
 adb push Mario64MRData/sm64/res/base.zip $D/sm64/res/
+adb push Mario64MRData/sm64/res/characters.zip $D/sm64/res/   # (only if you added characters)
 adb push Mario64MRData/native/libsm64game.so Mario64MRData/native/libgoddard.so Mario64MRData/native/libsm64.so $D/native/
 ```
 
@@ -174,6 +175,43 @@ adb push my-label.png /sdcard/Android/data/com.lucasmartinic.mario64mr/files/lab
 
 To go back to the plain label, delete it:
 `adb shell rm /sdcard/Android/data/com.lucasmartinic.mario64mr/files/label.png`
+
+### Your own characters
+
+Mario can look and sound like someone else: a **character pack** gives him another model, other voice clips, or
+both. Pick one in the game's options (pause, then R: **Character**): his model and voice change together, at once,
+in the window and out in your room (it's the same Mario), and the choice is kept for next time. **Original Mario**
+puts him back.
+
+A pack is a folder, or a `.zip` of one, in the layout model and voice mods for the sm64ex PC port use:
+
+- **a model**: `geo.inc.c` and `model.inc.c`, as [Fast64](https://github.com/Fast-64/fast64) exports Mario (or a
+  model mod's `actors/mario` folder has them), with its textures as `.png` files next to them
+  (`name.rgba16.png`...). It has to be made on Mario's skeleton, so his animations move it.
+- **voice clips**: `.wav` or `.aiff` files, named like the game's own (`sfx_mario/00_mario_jump_hoo.aiff`), or just
+  starting with their number (`00.wav`), or with their name without the number (`mario_jump_hoo.wav`). Clips the
+  pack doesn't have stay Mario's. The game's own are in `Mario64MRData-work/sm64ex/sound/samples/sfx_mario` (and
+  `sfx_mario_peach`) once you've installed, to listen to and to name yours after.
+- its **name** in the menu is the folder's (or the zip's), or the first line of a `name.txt` in it: letters, digits
+  and spaces, up to 20.
+
+The characters are made into the game when you install, so add them and run the installer again (a second run takes
+a couple of minutes):
+
+- put the packs in the **`characters`** folder next to `install_mario64mr.py` (on Windows: then double-click
+  `install_mario64mr.bat` again), or give them with `--character` (once for each):
+
+  ```
+  python3 install_mario64mr.py "Super Mario 64 (USA).z64" --push --character Luigi --character Wario.zip
+  ```
+
+- on the Steam Frame, put them in a folder called **`Mario64MR characters`** in Downloads, and run the installer on
+  the Frame again.
+
+The installer says what it found in each pack (and which clips it couldn't match to one of Mario's), and stops with
+the reason if a model won't build. Their textures and voices go in `sm64/res/characters.zip`, next to `base.zip`; to
+remove them all, run the installer again without packs. (The title screen's voice is the original's: it comes from
+your ROM.)
 
 ## Updating
 
@@ -282,6 +320,7 @@ Move with the stick, change with the stick left / right, A to pick, B to go back
 | Graphics › Defaults | Puts all the graphics options back as they were |
 | Sound | The music, sound effects and ambience volumes |
 | HUD | The lives, coins and stars counters on or off |
+| Character | Mario's model and voice: the original, or one of [your own characters](#your-own-characters) (only there when you've added some) |
 | Bring Mario back | Puts Mario back where he last was in the game, if he gets stuck out in your room |
 
 Changes apply at once, and are kept for next time.
