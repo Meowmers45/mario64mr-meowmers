@@ -22,6 +22,8 @@ import wave
 import zipfile
 from pathlib import Path
 
+import character_textures
+
 VOICE_BANKS = ("sfx_mario", "sfx_mario_peach")
 VOICE_FILES = (".wav", ".aiff", ".aif")
 TEXTURE_FORMATS = ("rgba16", "rgba32", "ia16", "ia8", "ia4", "ia1", "i8", "i4", "ci8", "ci4")
@@ -140,40 +142,34 @@ def texture_name(include):
 
 
 def write_model(root, pack, index):
-    """The pack's model sources into src/pc/characters/c<index>, their includes made to work there: its textures
-    named after the pack (in characters.zip), the game's own (a texture it kept) as they are."""
+    """The pack's model sources into src/pc/characters/c<index>, their includes made to work there, and every
+    texture in them made into a name the game loads (character_textures.py): the pack's own in characters.zip, the
+    game's own (a texture it kept) as they are."""
     dest = root / "src/pc/characters" / f"c{index}"
     dest.mkdir(parents=True)
     files = sorted(p for p in pack.model.iterdir() if p.is_file() and p.suffix in (".c", ".h"))
     local = {p.name for p in files}
-    pngs = {p.name: p for p in sorted(pack.model.rglob("*.png"))}
-    pack.textures = []
+    texts = {p: p.read_text(errors="replace") for p in files}
+    textures = character_textures.Textures(root, pack.slug, pack.model, "\n".join(texts.values()))
     names = []
     for source in files:
-        text = source.read_text(errors="replace")
 
         def include(match):
             indent, path = match.group(1), match.group(2)
-            texture = texture_name(path)
-            if texture:
-                base = texture.rsplit("/", 1)[-1]
-                if base + ".png" in pngs:
-                    entry = f"characters/{pack.slug}/{base}"
-                    if (pngs[base + ".png"], "gfx/" + entry + ".png") not in pack.textures:
-                        pack.textures.append((pngs[base + ".png"], "gfx/" + entry + ".png"))
-                    return indent + c_bytes(entry)
-                if (root / (texture + ".png")).is_file():
-                    return indent + c_bytes(texture)
-                fail(f"{pack.source}: {source.name} uses the texture {base}.png, which is neither in the pack "
-                     f"(next to {source.name}) nor one of the game's")
             name = path.rsplit("/", 1)[-1]
-            if name in local:
+            if name in local and not texture_name(path):
                 return f'{indent}#include "pc/characters/c{index}/{name}"'
             return match.group(0)
 
+        try:
+            text = textures.rewrite(texts[source])
+        except character_textures.TextureError as error:
+            fail(f"{pack.source}: {source.name}: {error}")
         text = INCLUDE.sub(include, text)
         (dest / source.name).write_text(text)
         names += [m.group(2) for m in DEFINITION.finditer(text) if m.group(2) not in KEYWORDS]
+    pack.textures = textures.files
+    print(f"  {pack.name}: {len(pack.textures)} textures of its own", flush=True)
     geo_text = (pack.model / "geo.inc.c").read_text(errors="replace")
     geos = [m.group(2) for m in DEFINITION.finditer(geo_text) if m.group(1) == "GeoLayout"]
     if not geos:
@@ -409,6 +405,9 @@ def write_zip(out, packs):
     path.parent.mkdir(parents=True, exist_ok=True)
     with zipfile.ZipFile(path, "w", zipfile.ZIP_DEFLATED) as z:
         for src, name in files:
-            z.write(src, name)
+            if isinstance(src, bytes):
+                z.writestr(name, src)
+            else:
+                z.write(src, name)
     print(f"{path}: {len(packs)} characters, {path.stat().st_size / 1e6:.1f} MB")
     return path

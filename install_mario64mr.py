@@ -697,6 +697,10 @@ def push(out, wait=False, apk=None, frame=None, lepton_ssh=None):
     run(["adb", "shell", "rm", "-f", f"{DEVICE_FOLDER}/sm64/res/{characters.ZIP_NAME}"])
     if (out / "sm64/res" / characters.ZIP_NAME).is_file():
         run(["adb", "push", native(out / "sm64/res" / characters.ZIP_NAME), DEVICE_FOLDER + "/sm64/res/"])
+        if subprocess.run(["adb", "shell", "ls", f"{DEVICE_FOLDER}/sm64/res/{characters.ZIP_NAME}"],
+                          capture_output=True).returncode != 0:
+            sys.exit(f"{characters.ZIP_NAME} didn't reach the headset: without it your characters' textures and "
+                     "voices are missing. Run the tool again with --push")
     run(["adb", "push"] + [native(out / "native" / n) for n in LIBRARIES] + [DEVICE_FOLDER + "/native/"])
     labels = sorted(out.glob("label.*"))
     if labels:

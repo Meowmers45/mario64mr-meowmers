@@ -186,8 +186,9 @@ puts him back.
 A pack is a folder, or a `.zip` of one, in the layout model and voice mods for the sm64ex PC port use:
 
 - **a model**: `geo.inc.c` and `model.inc.c`, as [Fast64](https://github.com/Fast-64/fast64) exports Mario (or a
-  model mod's `actors/mario` folder has them), with its textures as `.png` files next to them
-  (`name.rgba16.png`...). It has to be made on Mario's skeleton, so his animations move it.
+  model mod's `actors/mario` folder has them), with its textures: `.png` files next to them (`name.rgba16.png`...),
+  or written into the model's sources (as Fast64 does when it doesn't save them as PNGs), or both. It has to be
+  made on Mario's skeleton, so his animations move it.
 - **voice clips**: `.wav` or `.aiff` files, named like the game's own (`sfx_mario/00_mario_jump_hoo.aiff`), or just
   starting with their number (`00.wav`), or with their name without the number (`mario_jump_hoo.wav`). Clips the
   pack doesn't have stay Mario's. The game's own are in `Mario64MRData-work/sm64ex/sound/samples/sfx_mario` (and
