@@ -196,6 +196,9 @@ A pack is a folder, or a `.zip` of one, in the layout model and voice mods for t
 - its **name** in the menu is the folder's (or the zip's), or the first line of a `name.txt` in it: letters, digits
   and spaces, up to 20.
 
+There's an example pack to copy from in `characters/_example/Halo Mario`: a halo over Mario's own body, with its
+own texture and its own jump clip, each part explained in its README.
+
 The characters are made into the game when you install, so add them and run the installer again (a second run takes
 a couple of minutes):
 

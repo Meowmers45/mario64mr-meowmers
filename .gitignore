@@ -8,6 +8,7 @@ __pycache__/
 .DS_Store
 characters/*
 !characters/README.md
+!characters/_example/
 .env
 .env.*
 *.env

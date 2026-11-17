@@ -87,9 +87,11 @@ def find(paths, folder, work):
     """The character packs given (--character) and those in the characters folder, checked before anything is
     built: each with a model, voice clips or both."""
     sources = [Path(p) for p in paths or ()]
+    # (in the folder, names starting with _ are left out: the example, _example/Halo Mario, is only made in when
+    #  copied out of there or given with --character)
     if folder and Path(folder).is_dir():
         sources += sorted(p for p in Path(folder).iterdir()
-                          if (p.is_dir() and not p.name.startswith(".")) or p.suffix.lower() == ".zip")
+                          if not p.name.startswith((".", "_")) and (p.is_dir() or p.suffix.lower() == ".zip"))
     packs, slugs = [], set()
     for source in sources:
         if not source.exists():
