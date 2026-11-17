@@ -8,3 +8,10 @@ __pycache__/
 .DS_Store
 characters/*
 !characters/README.md
+.env
+.env.*
+*.env
+credentials.json
+*.pem
+*.key
+.credentials
