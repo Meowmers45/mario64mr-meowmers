@@ -181,11 +181,11 @@ def jobs():
 
 
 def extracted(work):
-    """Whether extract_assets.py has run here: what it makes, and the build needs. Its music sequences are the ones
-    that matter for the check: the pack build's Makefile depends on the sound/sequences/us directory itself, and
-    make fails with "No rule to make target 'sound/sequences/us'" when it is missing (assets/demo_data.json alone
-    was not enough: it is written before the sequences)."""
-    return (work / "assets/demo_data.json").is_file() and any((work / "sound/sequences/us").glob("*.m64"))
+    """Whether extract_assets.py has finished here. It writes .assets-local.txt last, once everything is out, so an
+    extraction stopped halfway (Ctrl-C, a closed window) is run again rather than built from. Its music sequences
+    are checked too: the pack build's Makefile depends on the sound/sequences/us directory itself, and make fails
+    with "No rule to make target 'sound/sequences/us'" when it is missing."""
+    return (work / ".assets-local.txt").is_file() and any((work / "sound/sequences/us").glob("*.m64"))
 
 
 def count(directory, pattern):

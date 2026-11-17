@@ -75,12 +75,6 @@ The tool in this repository makes the game from your ROM on your own computer, a
 
 ## Install
 
-> **How long it takes**: on a 16-core machine, building in WSL on the Linux filesystem took **1 m 27 s** with the
-> Android NDK already present, and about **5 minutes** including the NDK download (~700 MB). Building on a Windows
-> drive (`/mnt/c/...`) is far slower: extracting the assets alone did not finish in 20 minutes there, against **30
-> seconds** on the Linux filesystem. If a build seems stuck, see [Builds that seem stuck](#builds-that-seem-stuck).
-
-
 ### On Windows
 
 1. Download `Mario64MR.apk` from [Releases](../../releases), and this repository (Code › Download ZIP). Unzip
@@ -132,6 +126,11 @@ The tool in this repository makes the game from your ROM on your own computer, a
    sounds from your ROM, compiles the game for the headset, and pushes it all into the app's folder. Everything
    lands in `Mario64MRData/`; `Mario64MRData-work/` keeps the sources and builds, so a second run is quick. If the
    app has never been opened, the tool opens it once so it creates its folder, then closes it.
+
+   On a fast machine it's much quicker: a 16-core one took under 2 minutes with the Android NDK already there, about
+   5 with its download. In WSL, run it from the Linux filesystem (`~/...`), not a Windows drive (`/mnt/c/...`):
+   extracting the assets takes 30 seconds on the first and can take over 20 minutes on the second. If a build seems
+   stuck, see [Builds that seem stuck](#builds-that-seem-stuck).
 
 5. Open **Mario 64 MR** from your Library: it's under **Unknown Sources** (in the filter at the top right of the
    Library, or its own folder on newer versions), or search the Library for "Mario". If Unknown Sources is missing
