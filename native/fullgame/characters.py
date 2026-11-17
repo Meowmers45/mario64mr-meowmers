@@ -150,7 +150,7 @@ def write_model(root, pack, index):
     files = sorted(p for p in pack.model.iterdir() if p.is_file() and p.suffix in (".c", ".h"))
     local = {p.name for p in files}
     texts = {p: p.read_text(errors="replace") for p in files}
-    textures = character_textures.Textures(root, pack.slug, pack.model, "\n".join(texts.values()))
+    textures = character_textures.Textures(root, pack.slug, pack.model, "\n".join(texts.values()), pack.root)
     names = []
     for source in files:
 

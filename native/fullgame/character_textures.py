@@ -151,7 +151,7 @@ def layout(text, name, size, arrays, base=None):
     """(format, width, height, palette) of the texture array called name, from the display lists using it."""
     for at, args in calls(text, r"gsDPLoadTextureBlock(?:_4b)?|gsDPLoadTextureTile(?:_4b)?"):
         if args and args[0] == name:
-            four = text[text.rfind("gsDP", 0, at):at].endswith("_4b")
+            four = text[text.rfind("gsDP", 0, at):at].rstrip().endswith("_4b")
             fmt = fmt_code(args[1], 4 if four else size_code(args[2]))
             w, h = (args[2], args[3]) if four else (args[3], args[4])
             if fmt:
@@ -189,14 +189,21 @@ class Textures:
     """One pack's textures: rewrite() makes a source file's texture arrays into names; self.files is what goes
     into characters.zip, (png bytes or path, name in the zip)."""
 
-    def __init__(self, root, slug, folder, sources):
+    def __init__(self, root, slug, folder, sources, pack_root=None):
         self.root, self.slug, self.folder = root, slug, folder
         self.sources = sources  # every model source's text: the display lists to read sizes from
-        self.pngs = {}
-        for p in sorted(folder.rglob("*.png")):
-            self.pngs.setdefault(p.name.lower(), p)
-            self.pngs.setdefault(p.stem.lower(), p)  # (a .png named without its format)
-        self.hex = {p.name[:-len(".inc.c")].lower(): p for p in sorted(folder.rglob("*.inc.c"))}
+        self.pngs, self.hex = {}, {}
+        # (next to the model first, then anywhere else in the pack)
+        found = sorted(folder.rglob("*.png")) + sorted(set((pack_root or folder).rglob("*.png")) - set(folder.rglob("*.png")))
+        for p in found:
+            for key in (p.name.lower(), p.stem.lower()):  # (a .png named without its format too)
+                if key in self.pngs and self.pngs[key].read_bytes() != p.read_bytes():
+                    print(f"  two different {p.name} in the pack: using {self.pngs[key]}, not {p}", flush=True)
+                self.pngs.setdefault(key, p)
+        hexes = sorted(folder.rglob("*.inc.c")) + sorted((pack_root or folder).rglob("*.inc.c"))
+        for p in hexes:
+            if p.name not in ("model.inc.c", "geo.inc.c"):
+                self.hex.setdefault(p.name[:-len(".inc.c")].lower(), p)
         self.files, self.made = [], {}
 
     def name_for(self, base):

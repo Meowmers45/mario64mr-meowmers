@@ -1,0 +1,30 @@
+{
+  "summary": "Python-only test of the character-pack texture fix (character_textures.py + characters.py). I built a fake pack covering all 8 texture forms (a-h) and ran find -> write_sources -> write_zip on it. All 31 pytest tests pass. Every texture array in src/pc/characters/c1/model.inc.c now holds a zero-terminated name. Pack textures become characters/test_hero/<name> and the vanilla one stays actors/mario/mario_metal.rgba16. The string-literal form stays a string literal, which C zero-terminates anyway. The CI4 palette bytes are left exactly as they were. characters.zip contains exactly gfx/characters/test_hero/{cap.rgba16, eyes.rgba16, hexonly.ia8, luigi_cap.rgba16, raw_block.rgba16, fast_tex.rgba16, ci_tex.ci4}.png. Each is a valid PNG (checked with PIL) with the right size (32x32, 16x16, 16x64) and the right colours: rgba16 0xF801 -> (255,0,0,255), ia8 0xF0 -> (255,255,255,0), and ci4 texels taken from the palette. Names without a format get one added (raw_block.rgba16, ci_tex.ci4, fast_tex.rgba16). A missing included or string-literal texture raises SystemExit with a message naming it. Regression checks pass: a pack with no textures, write_sources([]) giving UNITY_CHARACTER_COUNT 1, read_wav, resample to 32000, write_aiff/read_aiff round trip, match_clip by name, number and name without number, and install_mario64mr.py --help. A few extra probes found small robustness gaps, listed below.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "character_textures.Textures.__init__ (folder=pack.model)", "issue": "The .png and hex .inc.c files are only looked for under the model folder (the one holding geo.inc.c/model.inc.c). A pack that keeps its textures in a sibling folder (e.g. pack/textures/cap.rgba16.png next to pack/actors/mario/) fails with 'the texture cap.rgba16.png is neither in the pack nor one of the game's', even though the png is in the pack. Possible fix: also search pack.root (model folder first)."},
+      {"endpoint": "character_textures.layout / is_texture", "issue": "'gsDPLoadTextureBlock_4b (' with whitespace before '(' is not seen as _4b: the slice text[rfind('gsDP'):at] ends with a space, so it is read as the non-4b argument layout. A CI4 raw array then stops with 'no display list says how big the texture c is'. Possible fix: rstrip() the slice before endswith('_4b')."},
+      {"endpoint": "character_textures.Textures.pngs / pack_png", "issue": "pngs are keyed by file name only (setdefault). Two different textures with the same name in different subfolders (a/x.rgba16.png 8x8, b/x.rgba16.png 16x16) both resolve to the first one, and the second is silently dropped (wrong texture, no error). The zip entry name also comes from the basename only. Rare, but it fails silently."}
+    ]
+  },
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": ["/app/tests/test_character_textures.py", "/app/test_reports/pytest/pytest_results.xml"],
+  "action_items": [
+    "Optional: also search pack.root for texture pngs and hex .inc.c files, not just the model folder",
+    "Optional: tolerate whitespace between gsDPLoadTextureBlock_4b/gsDPLoadTextureTile_4b and '(' in layout()",
+    "Optional: warn or fail when two pack pngs share a file name in different folders, instead of silently using the first"
+  ],
+  "critical_code_review_comments": [
+    "character_textures.number() uses eval behind a character-whitelist regex. Letters a-f and x are allowed, which is safe enough because builtins are empty, but a tiny arithmetic parser would be cleaner.",
+    "rewrite() finds an array's end with text.find('}'). That is fine for flat byte arrays, but a comment containing '}' inside a raw array would cut it short.",
+    "self.hex also indexes model.inc.c and geo.inc.c (keys 'model' and 'geo'). This is harmless unless a texture is literally named model/geo.",
+    "write_sources assumes root/src/pc exists (true in the sm64ex tree); with no packs and no src/pc it raises FileNotFoundError. Not a real-world issue."
+  ],
+  "updated_files": ["/app/tests/test_character_textures.py"],
+  "success_rate": {"backend": "100% (31/31 requested checks); 3 minor robustness gaps found by extra probes", "frontend": "N/A"},
+  "seed_data_creation": "none (all fixtures are in pytest tmp dirs)",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "No web app. Run: cd /app/tests && python3 -m pytest test_character_textures.py -q -p no:cacheprovider. The fixture builds the pack 'Test Hero' (slug test_hero) with forms a-h plus a fake root holding actors/mario/mario_metal.rgba16.png. No ROM or NDK is available, so the game build is not testable. The probe script for the extra edge cases is /tmp/probe.py."
+}

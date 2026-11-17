@@ -22,3 +22,9 @@ User choices: players supply their own files; choice remembered on the device; m
 
 ## Backlog
 - P1: verify build + on-headset test; P2: per-pack name/icon in the menu, custom animations, title-screen voice.
+
+## 2026-06 bug fix: character purple/black (missing textures)
+- New native/fullgame/character_textures.py: every texture form in a pack's model (include+png, png without format,
+  hex .inc.c without png, string-literal paths, raw hex arrays sized from the display lists, CI4/CI8 with palette)
+  becomes a name + PNG in characters.zip; pngs found anywhere in the pack. Installer checks characters.zip reached the headset.
+- Tested (Python only): tests/test_character_textures.py, 31 passing. Game build/headset still unverified.
