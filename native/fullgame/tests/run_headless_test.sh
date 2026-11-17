@@ -2,12 +2,14 @@
 # Builds the game library on this Mac (no host: CC=cc, a plain shared library) from a scratch copy of the sm64ex
 # checkout, patched as install_mario64mr.py patches it, and runs one of the tests here against it.
 #   run_headless_test.sh <test.c> <scratch dir> [Mario64MRData-work] [base.zip]
+# (the work folder and base.zip install_mario64mr.py made: by default, its own in the current directory)
 set -e -o pipefail
 HERE=$(cd "$(dirname "$0")" && pwd)
 TEST=$(cd "$(dirname "$1")" && pwd)/$(basename "$1")
 SCRATCH=${2:?scratch directory}
-WORK=${3:-$HOME/Repos/mario64mr/Mario64MRData-work}
-BASE=${4:-$HOME/Repos/mario64mr/Mario64MRData/sm64/res/base.zip}
+WORK=${3:-Mario64MRData-work}
+BASE=${4:-Mario64MRData/sm64/res/base.zip}
+BASE=$(cd "$(dirname "$BASE")" && pwd)/$(basename "$BASE")
 mkdir -p "$SCRATCH"
 SCRATCH=$(cd "$SCRATCH" && pwd)
 [ -d "$SCRATCH/sm64ex" ] || cp -cR "$WORK/sm64ex" "$SCRATCH/sm64ex"

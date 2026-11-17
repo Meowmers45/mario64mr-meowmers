@@ -165,7 +165,8 @@ void unity_set_camera(const float *matrix) {
 void unity_set_camera_interpolated(const float *matrix) { memcpy(camera_matrix,matrix,sizeof(camera_matrix)); }
 void unity_set_projection(const float *matrix) { memcpy(projection,matrix,sizeof(projection)); }
 int unity_is_mr(void) { return mr_geometry; }
-int unity_draw_far(void) { return draw_far; }
+/* (Graphics › Diorama: the whole level, or only what's near Mario, as the game draws it) */
+int unity_draw_far(void) { return draw_far && gUnityOptions[UNITY_OPT_DIORAMA]; }
 EXPORT int sm64unity_init(const char *save_path) {
     if (initialized) return 1;
     if (!save_path || strlen(save_path) >= sizeof(gCLIOpts.SavePath)) return 0;

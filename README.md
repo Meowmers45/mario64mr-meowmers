@@ -278,6 +278,7 @@ Move with the stick, change with the stick left / right, A to pick, B to go back
 | Graphics › Textures | The game's textures in the distance: as the N64 drew them (they shimmer far away), or smoothed with mipmaps and anisotropic filtering |
 | Graphics › Sharpening | The headset's own sharpening of the picture |
 | Graphics › Hands | Your hands over the window and in the level: Mario's white gloves, or your own (passthrough). Out in your room they're always your own |
+| Graphics › Diorama | What a diorama shows: the whole level (every room of the castle, and things far from Mario: coins, enemies), or only what's near Mario, as the game draws it (lighter) |
 | Graphics › Defaults | Puts all the graphics options back as they were |
 | Sound | The music, sound effects and ambience volumes |
 | HUD | The lives, coins and stars counters on or off |
