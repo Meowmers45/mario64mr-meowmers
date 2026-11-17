@@ -2,8 +2,9 @@
  * hand triangles (sm64unity_game_hands, game coordinates) it reads: nothing new for the host to send. There is no
  * grip, only touch.
  *
- * - Touch to collect: a coin, star, key, cap or 1-up your hand touches is collected as if Mario had touched it (it is
- *   put on his list of things he collided with this frame, which the game's own interactions then handle).
+ * - Touch to collect: a coin, cap or 1-up your hand touches is collected as if Mario had touched it (it is put on
+ *   his list of things he collided with this frame, which the game's own interactions then handle). Not stars or
+ *   keys: those are Mario's to reach.
  *
  * UNITY_HANDS_TOUCH turns touch-to-collect off. */
 #include "game/interaction.h"
@@ -93,7 +94,7 @@ static int unity_is_1up(struct Object *o) {
 }
 static int unity_collectable(struct Object *o) {
     if (o->oIntangibleTimer != 0 || (o->oInteractStatus & INT_STATUS_INTERACTED)) return 0;
-    if (o->oInteractType & (INTERACT_COIN | INTERACT_STAR_OR_KEY | INTERACT_CAP)) return 1;
+    if (o->oInteractType & (INTERACT_COIN | INTERACT_CAP)) return 1;
     return unity_is_1up(o);
 }
 

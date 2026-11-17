@@ -17,6 +17,7 @@
 #include "game/area.h"
 #include "game/object_helpers.h"
 #include "game/mario.h"
+#include "game/interaction.h"
 #include "pc/cliopts.h"
 
 int sm64unity_init(const char *);
@@ -95,6 +96,16 @@ int main(int argc, char **argv) {
     sm64unity_game_hands(NULL, 0);
     ticks(5);
     CHECK(gMarioState->numCoins == coins && (far->activeFlags & ACTIVE_FLAG_ACTIVE), "one it doesn't touch isn't");
+
+    printf("Not stars or keys (Mario's to reach):\n");
+    struct Object *star = spawn(bhvStar, MODEL_STAR, 0, 400);
+    ticks(2);
+    u32 action = gMarioState->action;
+    for (int i = 0; i < 10; i++) { palm(star->oPosX, star->oPosY + 10, star->oPosZ); tick(0); }
+    sm64unity_game_hands(NULL, 0);
+    ticks(5);
+    CHECK((star->oInteractType & INTERACT_STAR_OR_KEY) && (star->activeFlags & ACTIVE_FLAG_ACTIVE)
+          && gMarioState->action == action, "a star your hand touches stays where it is");
 
     printf("%s (%d failures)\n", failures ? "FAILED" : "PASSED", failures);
     return failures != 0;

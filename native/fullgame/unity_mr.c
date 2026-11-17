@@ -154,7 +154,8 @@ void unity_mario_warped(void) {
 EXPORT int sm64unity_carry(int mode, float x,float y,float z,float vx,float vy,float vz) {
     if (!gMarioObject || !gMarioState || !gMarioState->action || mode<0 || mode>3) return 0;
     if (!isfinite(x)||!isfinite(y)||!isfinite(z)||!isfinite(vx)||!isfinite(vy)||!isfinite(vz)) return 0;
-    if (mode==3 && (unity_room_surface_count()==0 || !room_floor_under(x,y,z))) return 0;
+    /* (looked for from a little above, as the host does before letting go: sm64unity_room_floor(x, y+100, z)) */
+    if (mode==3 && (unity_room_surface_count()==0 || !room_floor_under(x,y+100,z))) return 0;
     int was_held=carry_mode==1 || carry_mode==2;
     if (carry_mode==0 && mode!=0) vec3f_copy(carry_from,gMarioState->pos);
     if ((carry_mode>=2) != (mode>=2)) unity_skip_interpolation(); /* changing worlds: no in-between frame */
